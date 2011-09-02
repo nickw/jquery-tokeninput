@@ -30,6 +30,7 @@ var DEFAULT_SETTINGS = {
     searchingText: "Searching...",
     deleteText: "&times;",
     animateDropdown: true,
+    autoSelectFirstItem: true,
     theme: null,
     resultsFormatter: function(item){ return "<li>" + item[this.propertyToSearch]+ "</li>"; },
     tokenFormatter: function(item) { return "<li><p>" + item[this.propertyToSearch] + "</p></li>"; },
@@ -262,9 +263,11 @@ $.TokenList = function (input, url_or_data, settings) {
 
                 case KEY.TAB:
                 case KEY.ENTER:
-                    hide_dropdown();
-                    add_token({name: $(this).val()});
-                    return false;
+                    if(!selected_dropdown_item) {
+                        hide_dropdown();
+                        add_token({name: $(this).val()});
+                        return false;
+                    }
                 case KEY.NUMPAD_ENTER:
                 case KEY.COMMA:
                   if(selected_dropdown_item) {
@@ -690,7 +693,7 @@ $.TokenList = function (input, url_or_data, settings) {
                     this_li.addClass(settings.classes.dropdownItem2);
                 }
 
-                if(index === 0) {
+                if(index === 0 && settings.autoSelectFirstItem) {
                     select_dropdown_item(this_li);
                 }
 
