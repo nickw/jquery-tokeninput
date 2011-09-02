@@ -2,6 +2,9 @@
  * jQuery Plugin: Tokenizing Autocomplete Text Entry
  * Version 1.6.0
  *
+ * Forked by Nick Wientge:
+ * https://github.com/nickw/jquery-tokeninput
+ *
  * Copyright (c) 2009 James Smith (http://loopj.com)
  * Licensed jointly under the GPL and MIT licenses,
  * choose which one suits your project best!
@@ -39,7 +42,7 @@ var DEFAULT_SETTINGS = {
     tokenLimit: null,
     tokenDelimiter: ",",
     preventDuplicates: false,
-    tokenValue: "id",
+    tokenValue: "name",
 
     // Callbacks
     onResult: null,
@@ -227,16 +230,24 @@ $.TokenList = function (input, url_or_data, settings) {
                         }
                     } else {
                         var dropdown_item = null;
-
-                        if(event.keyCode === KEY.DOWN || event.keyCode === KEY.RIGHT) {
-                            dropdown_item = $(selected_dropdown_item).next();
+                        
+                        // We may not have a selected item if settings.autoSelectFirstItem is false
+                        if(!selected_dropdown_item) {
+                            dropdown_item = first_li;
+                            selected_dropdown_item = dropdown_item;
+                            select_dropdown_item(selected_dropdown_item);
                         } else {
-                            dropdown_item = $(selected_dropdown_item).prev();
-                        }
+                            if(event.keyCode === KEY.DOWN || event.keyCode === KEY.RIGHT) {
+                                dropdown_item = $(selected_dropdown_item).next();
+                            } else {
+                                dropdown_item = $(selected_dropdown_item).prev();
+                            }
 
-                        if(dropdown_item.length) {
-                            select_dropdown_item(dropdown_item);
+                            if(dropdown_item.length) {
+                                select_dropdown_item(dropdown_item);
+                            }
                         }
+                        
                         return false;
                     }
                     break;
@@ -265,7 +276,9 @@ $.TokenList = function (input, url_or_data, settings) {
                 case KEY.ENTER:
                     if(!selected_dropdown_item) {
                         hide_dropdown();
-                        add_token({name: $(this).val()});
+                        new_token = {};
+                        new_token[settings.tokenValue] = $(this).val();
+                        add_token(new_token);
                         return false;
                     }
                 case KEY.NUMPAD_ENTER:
@@ -466,7 +479,8 @@ $.TokenList = function (input, url_or_data, settings) {
             });
 
         // Store data on the token
-        var token_data = {"id": item.id};
+        var token_data = {};
+        token_data[settings.tokenValue] = item[settings.tokenValue];
         token_data[settings.propertyToSearch] = item[settings.propertyToSearch];
         $.data(this_token.get(0), "tokeninput", item);
 
@@ -498,7 +512,7 @@ $.TokenList = function (input, url_or_data, settings) {
             token_list.children().each(function () {
                 var existing_token = $(this);
                 var existing_data = $.data(existing_token.get(0), "tokeninput");
-                if(existing_data && existing_data.id === item.id) {
+                if(existing_data && existing_data[settings.tokenValue] === item[settings.tokenValue]) {
                     found_existing_token = existing_token;
                     return false;
                 }
@@ -620,6 +634,8 @@ $.TokenList = function (input, url_or_data, settings) {
         var token_values = $.map(saved_tokens, function (el) {
             return el[settings.tokenValue];
         });
+        console.log("token_values", token_values);
+        console.log(token_values.join(settings.tokenDelimiter));
         hidden_input.val(token_values.join(settings.tokenDelimiter));
 
     }
@@ -692,9 +708,14 @@ $.TokenList = function (input, url_or_data, settings) {
                 } else {
                     this_li.addClass(settings.classes.dropdownItem2);
                 }
-
+                
+                // Only auto select the first item if settings.autoSelectFirstItem is true
                 if(index === 0 && settings.autoSelectFirstItem) {
                     select_dropdown_item(this_li);
+                }
+                // If settings.autoSelectFirstItem is false, then store the first list item for later user
+                if(index === 0 && !settings.autoSelectFirstItem) {
+                    first_li = this_li;
                 }
 
                 $.data(this_li.get(0), "tokeninput", value);
