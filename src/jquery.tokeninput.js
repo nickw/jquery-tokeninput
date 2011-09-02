@@ -31,8 +31,8 @@ var DEFAULT_SETTINGS = {
     deleteText: "&times;",
     animateDropdown: true,
     theme: null,
-    resultsFormatter: function(item){ return "<li>" + item[this.propertyToSearch]+ "</li>" },
-    tokenFormatter: function(item) { return "<li><p>" + item[this.propertyToSearch] + "</p></li>" },
+    resultsFormatter: function(item){ return "<li>" + item[this.propertyToSearch]+ "</li>"; },
+    tokenFormatter: function(item) { return "<li><p>" + item[this.propertyToSearch] + "</p></li>"; },
 
     // Tokenization settings
     tokenLimit: null,
@@ -114,7 +114,7 @@ var methods = {
     get: function() {
         return this.data("tokenInputObject").getTokens();
     }
-}
+};
 
 // Expose the .tokenInput function to jQuery as a plugin
 $.fn.tokenInput = function (method) {
@@ -262,6 +262,9 @@ $.TokenList = function (input, url_or_data, settings) {
 
                 case KEY.TAB:
                 case KEY.ENTER:
+                    hide_dropdown();
+                    add_token({name: $(this).val()});
+                    return false;
                 case KEY.NUMPAD_ENTER:
                 case KEY.COMMA:
                   if(selected_dropdown_item) {
@@ -386,11 +389,11 @@ $.TokenList = function (input, url_or_data, settings) {
                 delete_token($(this));
             }
         });
-    }
+    };
 
     this.add = function(item) {
         add_token(item);
-    }
+    };
 
     this.remove = function(item) {
         token_list.children("li").each(function() {
@@ -408,11 +411,11 @@ $.TokenList = function (input, url_or_data, settings) {
                 }
             }
         });
-    }
+    };
 
     this.getTokens = function() {
         return saved_tokens;
-    }
+    };
 
     //
     // Private functions
